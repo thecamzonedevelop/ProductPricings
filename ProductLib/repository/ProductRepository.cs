@@ -1,29 +1,28 @@
-using ProductLib.Context;
+using Microsoft.EntityFrameworkCore;
 
 namespace ProductLib.repository;
-using System.Collections.Generic;
 
 public class ProductRepository
 {
-    private readonly FileContext _context;
+    private readonly DbContext _context;
 
-    public ProductRepository(FileContext context)
+    public ProductRepository(DbContext context)
     {
         _context = context;
     }
-    
+
     public void Create(Product entity)
     {
-        _context.Products.Add(entity.Clone());
-        _context.SaveChanges();
+        _context.Set<Product>().Add(entity.Clone());
+        _context.SaveChangesAsync();
     }
     public void Create(List<Product> products)
     {
-        _context.Products.AddRange(products);
-        _context.SaveChanges();
+        _context.Set<Product>().AddRange(products);
+        _context.SaveChangesAsync();
     }
 
-    public IQueryable<Product> GetQueryable()=> _context.Products.AsQueryable();
+    public IQueryable<Product> GetQueryable() => _context.Set<Product>().AsQueryable();
 
     public bool Update(Product entity)
     {
@@ -31,17 +30,19 @@ public class ProductRepository
         if (found != null)
         {
             found.Copy(entity);
-            _context.SaveChanges();
+            _context.SaveChangesAsync();
         }
         return found != null;
     }
     public bool Delete(string id)
     {
-        var found = _context.Products.Find(x => x.Id == id);
+        var found = _context.Set<Product>().FirstOrDefault(x => x.Id == id);
         if (found == null) return false;
 
-        var result = _context.Products.Remove(found);
-        _context.SaveChanges();
-        return result;
+        var result = _context.Set<Product>().Remove(found);
+        var task = _context.SaveChangesAsync();
+        task.Wait();
+        return task.Result > 0;
     }
+
 }
