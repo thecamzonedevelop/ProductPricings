@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 
-namespace ProductLib.repository;
+namespace ProductLib;
 
 public class ProductRepository
 {
@@ -11,38 +11,36 @@ public class ProductRepository
         _context = context;
     }
 
-    public void Create(Product entity)
+    public Task<int> CreateAsync(Product entity)
     {
         _context.Set<Product>().Add(entity.Clone());
-        _context.SaveChangesAsync();
+        return _context.SaveChangesAsync();
     }
-    public void Create(List<Product> products)
+    public Task<int> CreateAsync(List<Product> products)
     {
         _context.Set<Product>().AddRange(products);
-        _context.SaveChangesAsync();
+        return _context.SaveChangesAsync();
     }
 
     public IQueryable<Product> GetQueryable() => _context.Set<Product>().AsQueryable();
 
-    public bool Update(Product entity)
+    public Task<int> UpdateAsync(Product entity)
     {
         var found = GetQueryable().FirstOrDefault(x => x.Id == entity.Id);
         if (found != null)
         {
             found.Copy(entity);
-            _context.SaveChangesAsync();
+            return _context.SaveChangesAsync();
         }
-        return found != null;
+        return Task.FromResult(0);
     }
-    public bool Delete(string id)
+    public Task<int> DeleteAsync(string id)
     {
         var found = _context.Set<Product>().FirstOrDefault(x => x.Id == id);
-        if (found == null) return false;
+        if (found == null) return Task.FromResult(0);
 
         var result = _context.Set<Product>().Remove(found);
-        var task = _context.SaveChangesAsync();
-        task.Wait();
-        return task.Result > 0;
+        return _context.SaveChangesAsync();
     }
 
 }

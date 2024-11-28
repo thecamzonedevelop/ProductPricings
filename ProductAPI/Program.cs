@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using ProductAPI;
 using ProductLib;
-using ProductLib.repository;
 
 internal class Program
 {
@@ -18,26 +17,12 @@ internal class Program
                 builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
             });
         });
-
-        builder.Services.AddScoped<string>(provider =>
+              
+        builder.Services.AddDbContext<DbContext, SqlDbContext>(options =>
         {
-            return  builder.Configuration.GetValue<string>("FileSettings:FileName") ?? "products.txt";
+            options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnectionString"));
         });
 
-        builder.Services.AddDbContext<DbContext, FileDbContext>(options =>
-        {
-            options.UseInMemoryDatabase("ProductDb");
-        });
-
-
-        builder.Services.AddScoped<DbContext, FileDbContext>(provider =>
-        {
-            var context = new FileDbContext(
-                                provider.GetRequiredService<DbContextOptions<FileDbContext>>(),
-                                provider.GetRequiredService<string>()
-                            );
-            return context;
-        });
         builder.Services.AddScoped<ProductRepository>();
         builder.Services.AddScoped<ProductService>();
 
@@ -60,15 +45,6 @@ internal class Program
 
         app.UseHttpsRedirection();
 
-        //Initializing products
-        using (var scope = app.Services.CreateScope())
-        {
-            var contextService = scope.ServiceProvider.GetRequiredService<FileDbContext>();
-            contextService.LoadDataAsync().Wait();
-            var prdService = scope.ServiceProvider.GetRequiredService<ProductService>();
-            prdService.Initialize();
-        }
         app.Run();
     }
 }
-
