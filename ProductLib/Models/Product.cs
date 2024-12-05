@@ -9,4 +9,3 @@ public class Product
     public DateTime? Created { get; set; } = default;
     public DateTime? LastUpdated { get; set; } = default;
 }
-

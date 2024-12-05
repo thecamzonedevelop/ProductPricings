@@ -1,4 +1,5 @@
-﻿using ProductLib;
+﻿using Microsoft.AspNetCore.Mvc;
+using ProductLib;
 using RestClientLib;
 using System.Net;
 using ProductLib.Models;
@@ -23,7 +24,7 @@ namespace ProductAPI
             return await Task.FromResult(Results.Ok(result));
         }
 
-        private static async Task<IResult> GetProduct(ProductService service, string key)
+        private static async Task<IResult> GetProduct(ProductService service, [FromRoute]string key)
         {
             key = key.Trim();
             if (string.IsNullOrEmpty(key))
@@ -55,6 +56,7 @@ namespace ProductAPI
                 }
             );
         }
+        
         private static async Task<IResult> UpdateProduct(ProductService service, ProductUpdateReq req)
         {
             if (string.IsNullOrEmpty(req.Key))
@@ -71,7 +73,7 @@ namespace ProductAPI
             return await Task.FromResult(Results.Ok(result));
         }
 
-        private static async Task<IResult> DeleteProduct(ProductService service, string key)
+        private static async Task<IResult> DeleteProduct(ProductService service, [FromRoute] string key)
         {
             var result = service.Delete(key);
             if (result.Succeded == false)
